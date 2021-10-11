@@ -65,6 +65,7 @@ double Calculator::Calculate(DynamicArray<char> dynamicArray) {
 	
 	//Store the result that will be returned 
 	double result = 0.0;
+	bool error = false;
 
 	//Checks if it is possible to calculate teh equation
 	bool canCalculate = this->validateEquation(dynamicArray) && this->ValidateParentheses(dynamicArray);
@@ -95,6 +96,12 @@ double Calculator::Calculate(DynamicArray<char> dynamicArray) {
 				DynamicArray<char> string;
 				if (nestedValues.GetSize() >= 1) {
 					double nestedResult = this->CalculateBlock(nestedValues);
+
+					if (nestedResult == NULL) {
+						std::cout << "Cannot divide numbers by 0!" << result << std::endl;
+						return 0;
+					}
+
 					string = this->toArray(nestedResult);
 				}				
 
@@ -223,7 +230,11 @@ double Calculator::CalculateBlock(DynamicArray<char> dynamicArray) {
 	DynamicArray<DynamicArray<char>> cleanedArray = this->seperateEquation(dynamicArray);
 	do {
 		for (int i = 0; i < OPERATOR_LENGTH; i++) {
-			this->BlockOperation(cleanedArray, OPERATORS[i]);
+			bool success = this->BlockOperation(cleanedArray, OPERATORS[i]);
+			if (!success) {
+				std::cout << "Cannot divide by 0!" << std::endl;
+				return NULL;
+			}
 		}
 
 	} while (cleanedArray.GetSize() > 1);
@@ -234,7 +245,7 @@ double Calculator::CalculateBlock(DynamicArray<char> dynamicArray) {
 /*
 Grabs on a piece of equation, look for the given operator and calculate that portion
 */
-void Calculator::BlockOperation(DynamicArray<DynamicArray<char>> &dynamicArray, char operatorSign) {
+bool Calculator::BlockOperation(DynamicArray<DynamicArray<char>> &dynamicArray, char operatorSign) {
 	bool repeat = false;
 
 	do {
@@ -252,6 +263,9 @@ void Calculator::BlockOperation(DynamicArray<DynamicArray<char>> &dynamicArray, 
 						num3 = toNumber(num1) * toNumber(num2);
 						break;
 					case '/':
+						if (num2.Get(0) == '0')
+							return false;
+
 						num3 = toNumber(num1) / toNumber(num2);
 						break;
 					case '+':
@@ -269,6 +283,7 @@ void Calculator::BlockOperation(DynamicArray<DynamicArray<char>> &dynamicArray, 
 			}
 		}
 	} while (repeat);
+	return true;
 }
 
 /*
