@@ -63,6 +63,45 @@ double Calculator::Calculate(DynamicArray<char> dynamicArray) {
 		std::cout << "Error: Invalid equation input" << std::endl;
 	else {
 
+		bool repeat = true;
+		while (repeat) {
+
+			int leftParatheses = -1;
+			int rightParantheses = -1;
+			for (int i = 0; i < dynamicArray.GetSize(); i++) {
+				char character = dynamicArray.Get(i);
+				if (character == '(')
+					leftParatheses = i;
+				else if (character == ')') {
+					rightParantheses = i;
+					break;
+				}
+			}
+
+			if (leftParatheses < 0)
+				repeat = false;
+			else {
+				DynamicArray<char> nestedValues;
+				for (int i = leftParatheses + 1; i < rightParantheses; i++) {
+					nestedValues.Add(dynamicArray.Get(i));
+				}
+				
+				DynamicArray<char> string;
+				if (nestedValues.GetSize() >= 1) {
+					double nestedResult = this->CalculateBlock(nestedValues);
+					string = this->toArray(nestedResult);
+				}				
+
+				dynamicArray.Remove(leftParatheses, rightParantheses);
+				
+				for (int i = string.GetSize() - 1; i >= 0; i--) {
+					dynamicArray.Add(string.Get(i) ,leftParatheses);
+				}
+
+			}
+
+		}
+
 		result = this->CalculateBlock(dynamicArray);
 
 		std::cout << "The result is: " << result << std::endl;
@@ -71,8 +110,6 @@ double Calculator::Calculate(DynamicArray<char> dynamicArray) {
 
 	return result;
 }
-
-
 
 double Calculator::toNumber(DynamicArray<char> number) {
 	bool isNegative = (number.Get(0) == '-');
@@ -110,9 +147,6 @@ double Calculator::toNumber(DynamicArray<char> number) {
 
 	return result;
 }
-
-
-
 
 template<typename T>
 DynamicArray<char> Calculator::toArray(T num) {
