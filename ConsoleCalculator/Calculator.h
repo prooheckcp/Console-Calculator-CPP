@@ -1,10 +1,20 @@
 #pragma once
+
+//Includes||
 #include "DynamicArray.h"
 #include "DynamicArray.cpp"
+//________||
+
+/*
+* This calculator class has a single exposed functions: Calculate
+* it takes an array of chars (aka low budget string) and it either prints an error
+* (if you input an invalid equation) or prints/returns the value of the equation
+*/
 
 class Calculator
 {
 	public:
+		//Receives a string returns the value
 		double Calculate(DynamicArray<char> dynamicArray);
 
 	private:

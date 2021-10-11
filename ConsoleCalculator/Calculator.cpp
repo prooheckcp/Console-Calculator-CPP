@@ -1,10 +1,12 @@
+//Includes||
 #include "Calculator.h"
 #include "DynamicArray.h"
 #include "DynamicArray.cpp"
 #include <iostream>
+//________||
 
 /*
-This calculator module utilizes the DynamicCharArray
+	This calculator module utilizes the Dynamic Array library
 */
 
 //Constants||
@@ -12,8 +14,8 @@ const int OPERATOR_LENGTH = 4;
 const int IGNORE_LENGTH = 1;
 const int PARENTHESES_LENGTH = 2;
 
-const char operators[OPERATOR_LENGTH] {'*', '/', '-', '+'}; //These are ordered by priority
-const int ignoreList[IGNORE_LENGTH]{(int)' '}; 
+const char OPERATORS[OPERATOR_LENGTH] {'*', '/', '-', '+'}; //These are ordered by priority
+const int ignoreList[IGNORE_LENGTH]{(int)' '};
 const int PARENTHESES_LIST[PARENTHESES_LENGTH]{ (int)'(', (int)')' }; //Used for nesting equations
 
 const int NUMBER_ASCII_MIN = (int)'0';
@@ -21,15 +23,18 @@ const int NUMBER_ASCII_MAX = (int)'9';
 //_________||
 
 //Helper methods||
+
+//Checks if the inserted character is an operator
 bool isOperator(char character) {
 	int characterASCII = (int)character;
 	for (int i = 0; i < OPERATOR_LENGTH; i++) {
-		if (operators[i] == characterASCII)
+		if (OPERATORS[i] == characterASCII)
 			return true;
 	}
 	return false;
 }
 
+//Checks if the inserted character is a space or any value that should be treated as one 
 bool isSpace(char character) {
 	int characterASCII = (int)character;
 	for (int i = 0; i < IGNORE_LENGTH; i++) {
@@ -39,11 +44,13 @@ bool isSpace(char character) {
 	return false;
 }
 
+//Checks if the inserted character is a number
 bool isNumber(char character) {
 	int characterASCII = (int)character;
 	return characterASCII >= NUMBER_ASCII_MIN && characterASCII <= NUMBER_ASCII_MAX;
 }
 
+//Adds an int to the reference array inserted in the second argument
 void AddIntToArray(double intNum, DynamicArray<char>& result) {
 	if (intNum >= 10)
 		AddIntToArray(intNum / 10, result);
@@ -55,6 +62,8 @@ void AddIntToArray(double intNum, DynamicArray<char>& result) {
 //______________||
 
 double Calculator::Calculate(DynamicArray<char> dynamicArray) {
+	
+	//Store the result that will be returned 
 	double result = 0.0;
 
 	//Checks if it is possible to calculate teh equation
@@ -62,29 +71,26 @@ double Calculator::Calculate(DynamicArray<char> dynamicArray) {
 	if (!canCalculate) 
 		std::cout << "Error: Invalid equation input" << std::endl;
 	else {
+		while (true) {
 
-		bool repeat = true;
-		while (repeat) {
-
-			int leftParatheses = -1;
+			int leftParantheses = -1;
 			int rightParantheses = -1;
 			for (int i = 0; i < dynamicArray.GetSize(); i++) {
 				char character = dynamicArray.Get(i);
 				if (character == '(')
-					leftParatheses = i;
+					leftParantheses = i;
 				else if (character == ')') {
 					rightParantheses = i;
 					break;
 				}
 			}
 
-			if (leftParatheses < 0)
-				repeat = false;
+			if (leftParantheses < 0)
+				break; //If there are no more parantheses then it should stop looking for them
 			else {
 				DynamicArray<char> nestedValues;
-				for (int i = leftParatheses + 1; i < rightParantheses; i++) {
+				for (int i = leftParantheses + 1; i < rightParantheses; i++)
 					nestedValues.Add(dynamicArray.Get(i));
-				}
 				
 				DynamicArray<char> string;
 				if (nestedValues.GetSize() >= 1) {
@@ -92,20 +98,20 @@ double Calculator::Calculate(DynamicArray<char> dynamicArray) {
 					string = this->toArray(nestedResult);
 				}				
 
-				dynamicArray.Remove(leftParatheses, rightParantheses);
+				//Remove this part of the equation from the logic for it to be replaced with the result
+				dynamicArray.Remove(leftParantheses, rightParantheses);
 				
-				for (int i = string.GetSize() - 1; i >= 0; i--) {
-					dynamicArray.Add(string.Get(i) ,leftParatheses);
-				}
-
+				//Insert the result into the whole equation
+				for (int i = string.GetSize() - 1; i >= 0; i--)
+					dynamicArray.Add(string.Get(i) , leftParantheses);
 			}
-
 		}
 
+		//After the parentheses are gone we should calculate the final equation block
 		result = this->CalculateBlock(dynamicArray);
 
+		//Out put the final result
 		std::cout << "The result is: " << result << std::endl;
-
 	}
 
 	return result;
@@ -217,7 +223,7 @@ double Calculator::CalculateBlock(DynamicArray<char> dynamicArray) {
 	DynamicArray<DynamicArray<char>> cleanedArray = this->seperateEquation(dynamicArray);
 	do {
 		for (int i = 0; i < OPERATOR_LENGTH; i++) {
-			this->BlockOperation(cleanedArray, operators[i]);
+			this->BlockOperation(cleanedArray, OPERATORS[i]);
 		}
 
 	} while (cleanedArray.GetSize() > 1);
@@ -226,7 +232,7 @@ double Calculator::CalculateBlock(DynamicArray<char> dynamicArray) {
 }
 
 /*
-Calculation operations
+Grabs on a piece of equation, look for the given operator and calculate that portion
 */
 void Calculator::BlockOperation(DynamicArray<DynamicArray<char>> &dynamicArray, char operatorSign) {
 	bool repeat = false;
@@ -308,8 +314,15 @@ DynamicArray<DynamicArray<char>> Calculator::seperateEquation(DynamicArray<char>
 }
 
 bool Calculator::validateEquation(DynamicArray<char> dynamicArray) {
+	
+	
 	bool wasOperator = false;
 	bool wasNumber = false;
+	
+	bool atLeastOneNumber = false;
+
+	bool wasDot = false;
+
 	for (int i = 0; i < dynamicArray.GetSize(); i++) {
 		char character = dynamicArray.Get(i);
 
@@ -320,11 +333,25 @@ bool Calculator::validateEquation(DynamicArray<char> dynamicArray) {
 		bool isOp = isOperator(character);
 		bool isIgnore = isSpace(character) || character == '(' || character == ')';
 
+		if (character == '.' && i < dynamicArray.GetSize() - 1) {
+			if (!wasNumber)
+				return false;
+
+			wasDot = true;
+		}else if(wasDot){
+
+			if (isInt)
+				wasDot = false;
+			else
+				return false;
+		}
+
+
 		if(isOp) {
 			if (!wasNumber)
 				return false;
 		}
-		else if(!isIgnore && !isInt){
+		else if(!isIgnore && !isInt && !wasDot){
 			return false;
 		}
 
@@ -332,7 +359,10 @@ bool Calculator::validateEquation(DynamicArray<char> dynamicArray) {
 		if (!isIgnore) {
 			wasOperator = isOp;
 			wasNumber = isInt;
+
+			if (wasNumber)
+				atLeastOneNumber = true;
 		}
 	}
-	return !wasOperator;
+	return !wasOperator && atLeastOneNumber;
 }

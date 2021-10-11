@@ -8,10 +8,6 @@
 #include "Calculator.h"
 //________||
 
-//Constants||
-
-//_________||
-
 //Variables||
 DynamicArray<char> userInput;
 Calculator calculator;
@@ -25,11 +21,13 @@ int main()
 {
 	while (true) {
 		DynamicArray<char> response = getInput();
-		double result = calculator.Calculate(response);
+		calculator.Calculate(response);
 	}	
 }
 
-
+/*
+Gets the input of the user on the console to use for the calculator
+*/
 DynamicArray<char> getInput() {
 
 	//Get user input

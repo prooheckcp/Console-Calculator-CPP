@@ -3,10 +3,12 @@
 #include <iostream>
 
 /*
-	Removes a certain character from the list, it can either be a range
-	or just one element
+	Remade the Lists from Lua into c++ and added the Replace function just cause it was useful for the calculator
 */
 
+/*
+Construnctor just sets the size of the array to 0
+*/
 template<class T>
 DynamicArray<T>::DynamicArray()
 {
@@ -42,9 +44,6 @@ void DynamicArray<T>::Remove(int index, int index2) {
 	this->Size -= amountRemoved;
 }
 
-/*
-	Adds a new character to this array
-*/
 template<class T>
 void DynamicArray<T>::Add(T character) {
 	this->Add(character, this->Size);
@@ -73,9 +72,6 @@ void DynamicArray<T>::Add(T character, int position) {
 	this->Size += 1;
 }
 
-/*
-Get value at certain point
-*/
 template<class T>
 T& DynamicArray<T>::Get(int index) {
 	if (this->Size == 0 || index >= this->Size) {
@@ -94,9 +90,6 @@ void DynamicArray<T>::Replace(T character, int index, int index2) {
 	this->Add(character, index);
 }
 
-/*
-	Prints the array in a pretty and readable way in the console
-*/
 template<class T>
 void DynamicArray<T>::Print() {
 
@@ -114,6 +107,7 @@ void DynamicArray<T>::Print() {
 		std::cout << "}" << std::endl;
 	}
 }
+
 template<class T>
 int DynamicArray<T>::GetSize() {
 	return this->Size;
